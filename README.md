@@ -10,7 +10,7 @@ Running a recipe needs Sefra, which is available through a [pilot request](https
 |---|---|---|
 | [For Stripe](packs/stripe/) | Card charges and refunds, test mode only | Passed 2026-11-21 |
 | [For GitHub](packs/github/) | Reading, labelling and closing issues in one repository | Passed 2026-11-21 |
-| [For Jira](packs/jira/) | Reading and labelling issues in one project | In review, not published yet |
+| [For Jira](packs/jira/) | Reading and labelling issues in one project | Passed 2026-11-21 |
 
 A pack counts as published only when its live check has passed against the vendor's sandbox.
 
