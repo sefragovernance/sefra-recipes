@@ -2,13 +2,13 @@
 
 Ready-made bundles for [Sefra](https://sefra.io), a governance gateway between AI agents and the systems they change. Each recipe is a starting point: copy it, edit the rules and thresholds, and apply it. After you copy it, it is yours.
 
-Running a recipe needs Sefra, which is available through a [pilot request](https://sefra.io/contact).
+Running a recipe needs Sefra, which is available through a [pilot request](https://sefra.io/contact). The pack for Stripe needs a Sefra version that supports `success_when` on compensation.
 
 ## Catalogue
 
 | Pack | Governs | Live check |
 |---|---|---|
-| [For Stripe](packs/stripe/) | Card charges and refunds, test mode only | Passes; not published, see its known limits |
+| [For Stripe](packs/stripe/) | Card charges and refunds, test mode only | Passed 2026-11-21 |
 
 A pack counts as published only when its live check has passed against the vendor's sandbox.
 

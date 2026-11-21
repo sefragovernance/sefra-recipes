@@ -56,4 +56,7 @@ compensate:
   body: { payment_intent: "${output.payment_intent_id}" }
   idempotency: { mode: header, header: Idempotency-Key }
   success: [200]
+  # A 200 can carry a refund that is pending, needs action or failed. Only a
+  # finished one undoes the charge; anything else reaches an operator.
+  success_when: { "/status": succeeded }
 summary_template: "Charge card: ${input.amount_minor} ${input.currency} (minor units) with ${input.payment_method}, ${input.description}"

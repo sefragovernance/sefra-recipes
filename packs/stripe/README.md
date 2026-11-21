@@ -1,6 +1,6 @@
 # Sefra pack for Stripe
 
-Governs the card charges and refunds an AI agent makes through Stripe. **Test mode only.** Not published yet: see "Known limits".
+Governs the card charges and refunds an AI agent makes through Stripe. **Test mode only.**
 
 ## What it does
 
@@ -42,7 +42,7 @@ From running this pack against the Stripe sandbox:
 
 ## Known limits
 
-- **A rollback can report success for a refund that has not completed.** When a later step fails, Sefra counts the automatic refund as done on its HTTP status. A refund answered `failed` reaches an operator, but one answered `pending` or `requires_action` does not. Do not rely on rollback for real money until this is fixed in Sefra.
+- **A rollback refund that is still `pending` goes to an operator,** even if it finishes later. Sefra counts it as undone only when Stripe answers `succeeded`. This needs a Sefra version with `success_when` on compensation.
 - **Refund limits apply per call.** Several approved partial refunds can exceed the limit in total. A person approves each one.
 - **Limits compare minor units, not currencies,** and the approval summary does not show the refund's currency.
 - **Charges split across separate executions** are not added up.
