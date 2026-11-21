@@ -18,7 +18,7 @@ Governs the card charges and refunds an AI agent makes through Stripe. **Test mo
 | `payments.multiple_charges` | A finance approver for any plan with more than one charge |
 | `payments.refund_limit` | No refund above 1,000.00 |
 | `payments.refund_approval` | A person approves every refund |
-| `payments.duplicate` | The same action is refused for 24 hours |
+| `payments.duplicate` | The same action is refused for 24 hours. An earlier execution that was rejected, failed or rolled back does not count, so an action that was undone can be repeated at once |
 
 The amounts are constants at the top of `bundle/policies/payments.rego`. They start strict on purpose and are compared in minor units, whatever the currency.
 

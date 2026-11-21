@@ -25,7 +25,7 @@ This pack does not create issues or comments. GitHub has no idempotency key and 
 | `github.pull_request` | Pull requests are refused. The issues API also returns them |
 | `github.issue_not_found` | No action on a number that does not exist |
 | `github.unresolved_target` | A write names its issue and label directly, so that the approver sees them. A value taken from an earlier step is refused |
-| `github.duplicate` | The same write by the same agent is refused for 24 hours, also after it was undone |
+| `github.duplicate` | The same write by the same agent is refused for 24 hours. An earlier execution that was rejected, failed or rolled back does not count, so a write that was undone can be repeated at once |
 | `github.plan_too_large` | At most 5 steps in a plan |
 
 The allowed labels, plan size and approver role are constants at the top of `bundle/policies/github.rego`. They start strict on purpose.

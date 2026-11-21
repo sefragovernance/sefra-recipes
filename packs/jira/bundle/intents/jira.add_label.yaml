@@ -1,6 +1,6 @@
 intent: jira.add_label
 version: 1
-description: Add one allow-listed label to an issue in the configured project. Refuses another project, a label outside the allow-list, and a label the issue already has. Undone by removing the label.
+description: Add one allow-listed label to an issue in the configured project. An escalation label waits for a project lead to approve it. Refuses another project, a label outside the allow-list, and a label the issue already has in any case. Undone by removing the label.
 effect: write
 tags: [jira, issues, labels]
 input_schema:
@@ -132,6 +132,11 @@ execute:
 # step added. Removing an absent label also answers 204, so a repeat is safe. No
 # already_undone: a 404 can also mean the credential lost access, with the label
 # still there, so it goes to an operator.
+#
+# A compensation runs no policy and reuses this key for up to 24 hours. An issue
+# moved to another project still answers to its old key, so only an account that
+# can reach this project alone makes such a call answer 404 instead of writing to
+# the moved issue. That account is a requirement of this pack: see the README.
 compensate:
   connector: jira
   method: PUT

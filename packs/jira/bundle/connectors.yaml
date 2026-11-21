@@ -1,7 +1,9 @@
 # One Jira Cloud site. Replace EDIT_ME_SITE with your site. A Jira URL cannot pin
 # one project, and an API token acts with all the rights of its account across
-# the site, so use a dedicated account that can reach only your project. The
-# project itself is enforced by the input patterns and policies/jira.rego.
+# the site. The account MUST be dedicated to this pack and able to reach only
+# your project: the input patterns and policies/jira.rego hold the project for
+# forward calls, but a rollback runs no policy, and only this account's limits
+# stop it from writing to an issue that has moved to another project.
 #
 # The secret holds "account-email:api-token", as Basic authentication needs.
 # Replace EDIT_ME_ACCOUNT_EMAIL with that account: a secret for any other account

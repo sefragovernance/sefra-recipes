@@ -1,33 +1,28 @@
-# Rules of this pack for Jira. Edit the constants to fit your project and
-# workflow; they start strict on purpose.
+# Rules of this pack for Jira. Edit the constants to fit your project; they
+# start strict on purpose.
 #
 # Allow on what is known at submission (principal, intent type). Data-dependent
 # constraints are deny rules, which do not fire while a value they read is still
 # unresolved at pre-flight, and run again just before each step.
 package policies.jira
 
-# The only project an agent may act in. Replace it here and in the issue_key
-# pattern of each manifest.
+# The only project an agent may act in. Replace every occurrence of the
+# placeholder, here and in the key patterns of each manifest.
 project_key := "EDIT_ME_PROJECT"
 
-# The only labels an agent may add. Jira labels are case-sensitive.
-allowed_labels := {"agent-reviewed", "needs-info", "triaged"}
+# Labels an agent may add on its own.
+routine_labels := {"agent-reviewed", "needs-info", "triaged"}
+
+# Labels an agent may add only after a person approves.
+approval_labels := {"escalated"}
+
+allowed_labels := routine_labels | approval_labels
 
 max_plan_steps := 5
 
 approver_role := "project_lead"
 
-# The one status move this pack makes, and the transition ids of your workflow.
-# The ids are also in intents/jira.start_work.yaml.
-from_status := "To Do"
-
-to_status := "In Progress"
-
-start_transition := "21"
-
-undo_transition := "11"
-
-write_intents := {"jira.add_label", "jira.start_work"}
+write_intents := {"jira.add_label"}
 
 intents := write_intents | {"jira.get_issue"}
 
@@ -85,54 +80,19 @@ deny contains {
 }
 
 # jira.label_already_present: undoing this step would remove a label it did not
-# add. Jira keeps labels that differ in case apart, so this compares exactly.
+# add. Jira keeps labels that differ in case apart, but a person reads them as
+# one, so a variant in another case counts as present. It says nothing about an
+# issue outside the project.
 deny contains {
 	"rule": "jira.label_already_present",
-	"message": "The issue already has this label.",
+	"message": "The issue already has this label, possibly in another case.",
 	"path": "/label",
 	"hint": "Nothing to do.",
 } if {
 	input.intent.type == "jira.add_label"
-	input.input.label in input.facts.issue.fields.labels
-}
-
-# jira.not_in_expected_status: undoing this step moves the issue to from_status,
-# so it may start only from there. Any other status is refused.
-deny contains {
-	"rule": "jira.not_in_expected_status",
-	"message": "The issue is not in the status this action starts from.",
-	"path": "/issue_key",
-	"actual": input.facts.issue.fields.status.name,
-	"limit": from_status,
-	"hint": "Only an issue in the status in limit can be started.",
-} if {
-	input.intent.type == "jira.start_work"
-	input.facts.issue.fields.status.name != from_status
-}
-
-# jira.workflow_mismatch: a transition id means something else in another
-# workflow, so both ids must lead to the expected statuses.
-deny contains {
-	"rule": "jira.workflow_mismatch",
-	"message": "The workflow does not offer the transitions this pack is configured for.",
-	"path": "/issue_key",
-	"hint": "Ask an administrator to set the transition ids of this pack for your workflow.",
-} if {
-	input.intent.type == "jira.start_work"
-	"transitions" in object.keys(input.facts)
-	not workflow_matches
-}
-
-workflow_matches if {
-	offers(start_transition, to_status)
-	offers(undo_transition, from_status)
-}
-
-offers(id, status) if {
-	some t in input.facts.transitions.transitions
-	t.id == id
-	t.to.name == status
-	t.isAvailable == true
+	not wrong_project
+	some existing in input.facts.issue.fields.labels
+	lower(existing) == lower(input.input.label)
 }
 
 # jira.unresolved_target: with a value that a plan resolves later, the
@@ -147,7 +107,8 @@ deny contains {
 	count(input.unresolved.input) > 0
 }
 
-# jira.duplicate: two executions of one action could undo each other.
+# jira.duplicate: two executions of one action could undo each other. Sefra does
+# not count an earlier execution that was rejected, failed or rolled back.
 deny contains {
 	"rule": "jira.duplicate",
 	"message": "The same action was accepted in the last 24 hours.",
@@ -171,12 +132,13 @@ deny contains {
 	input.plan.size > max_plan_steps
 }
 
-# jira.start_work_approval
+# jira.label_approval
 require_approval contains {
-	"rule": "jira.start_work_approval",
-	"message": "A person approves moving an issue to In Progress.",
+	"rule": "jira.label_approval",
+	"message": "A person approves adding this label.",
 	"approver": {"role": approver_role},
 	"distinct_from_requester": true,
 } if {
-	input.intent.type == "jira.start_work"
+	input.intent.type == "jira.add_label"
+	input.input.label in approval_labels
 }
