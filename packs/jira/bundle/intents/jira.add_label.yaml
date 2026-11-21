@@ -1,0 +1,142 @@
+intent: jira.add_label
+version: 1
+description: Add one allow-listed label to an issue in the configured project. Refuses another project, a label outside the allow-list, and a label the issue already has. Undone by removing the label.
+effect: write
+tags: [jira, issues, labels]
+input_schema:
+  type: object
+  additionalProperties: false
+  required: [issue_key, label]
+  properties:
+    # The project is fixed here and in policies/jira.rego. Replace EDIT_ME_PROJECT in both.
+    issue_key: { type: string, maxLength: 32, pattern: "^EDIT_ME_PROJECT-[1-9][0-9]{0,9}$" }
+    # Jira refuses a label with a space, and treats labels as case-sensitive.
+    label: { type: string, pattern: "^[a-z0-9][a-z0-9-]{0,49}$" }
+# Jira answers 204 with no body, so the status is what says the label is on the
+# issue.
+output_schema:
+  type: object
+  additionalProperties: false
+  properties: {}
+facts:
+  # Jira answers with the whole issue, and a manifest path cannot carry the
+  # fields= parameter. The schema is closed, so a field Jira or a site admin adds
+  # later stops the intent until it is declared here. Only the key, project key,
+  # status name and labels stay readable; every other field is replaced by a
+  # keyed hash before the decision is stored, including people, summary and
+  # description. The customfield_ ids differ per site: see the README.
+  issue:
+    connector: jira
+    method: GET
+    path: "/issue/${input.issue_key}"
+    timeout_ms: 5000
+    response_schema:
+      type: object
+      additionalProperties: false
+      required: [key, fields]
+      properties:
+        key: { type: string, maxLength: 64 }
+        id: { x-sefra-sensitive: true }
+        self: { x-sefra-sensitive: true }
+        expand: { x-sefra-sensitive: true }
+        fields:
+          type: object
+          additionalProperties: false
+          required: [project, status, labels]
+          properties:
+            project:
+              type: object
+              additionalProperties: false
+              required: [key]
+              properties:
+                key: { type: string, maxLength: 64 }
+                id: { x-sefra-sensitive: true }
+                self: { x-sefra-sensitive: true }
+                name: { x-sefra-sensitive: true }
+                projectTypeKey: { x-sefra-sensitive: true }
+                simplified: { x-sefra-sensitive: true }
+                avatarUrls: { x-sefra-sensitive: true }
+                projectCategory: { x-sefra-sensitive: true }
+                insight: { x-sefra-sensitive: true }
+            status:
+              type: object
+              additionalProperties: false
+              required: [name]
+              properties:
+                name: { type: string, maxLength: 255 }
+                id: { x-sefra-sensitive: true }
+                self: { x-sefra-sensitive: true }
+                description: { x-sefra-sensitive: true }
+                iconUrl: { x-sefra-sensitive: true }
+                statusCategory: { x-sefra-sensitive: true }
+            labels:
+              type: array
+              items: { type: string, maxLength: 255 }
+            aggregateprogress: { x-sefra-sensitive: true }
+            aggregatetimeestimate: { x-sefra-sensitive: true }
+            aggregatetimeoriginalestimate: { x-sefra-sensitive: true }
+            aggregatetimespent: { x-sefra-sensitive: true }
+            assignee: { x-sefra-sensitive: true }
+            attachment: { x-sefra-sensitive: true }
+            comment: { x-sefra-sensitive: true }
+            components: { x-sefra-sensitive: true }
+            created: { x-sefra-sensitive: true }
+            creator: { x-sefra-sensitive: true }
+            customfield_10000: { x-sefra-sensitive: true }
+            customfield_10001: { x-sefra-sensitive: true }
+            customfield_10015: { x-sefra-sensitive: true }
+            customfield_10017: { x-sefra-sensitive: true }
+            customfield_10019: { x-sefra-sensitive: true }
+            customfield_10021: { x-sefra-sensitive: true }
+            customfield_10026: { x-sefra-sensitive: true }
+            description: { x-sefra-sensitive: true }
+            duedate: { x-sefra-sensitive: true }
+            environment: { x-sefra-sensitive: true }
+            fixVersions: { x-sefra-sensitive: true }
+            issuekey: { x-sefra-sensitive: true }
+            issuelinks: { x-sefra-sensitive: true }
+            issuerestriction: { x-sefra-sensitive: true }
+            issuetype: { x-sefra-sensitive: true }
+            lastViewed: { x-sefra-sensitive: true }
+            parent: { x-sefra-sensitive: true }
+            priority: { x-sefra-sensitive: true }
+            progress: { x-sefra-sensitive: true }
+            reporter: { x-sefra-sensitive: true }
+            resolution: { x-sefra-sensitive: true }
+            resolutiondate: { x-sefra-sensitive: true }
+            security: { x-sefra-sensitive: true }
+            statusCategory: { x-sefra-sensitive: true }
+            statuscategorychangedate: { x-sefra-sensitive: true }
+            subtasks: { x-sefra-sensitive: true }
+            summary: { x-sefra-sensitive: true }
+            thumbnail: { x-sefra-sensitive: true }
+            timeestimate: { x-sefra-sensitive: true }
+            timeoriginalestimate: { x-sefra-sensitive: true }
+            timespent: { x-sefra-sensitive: true }
+            timetracking: { x-sefra-sensitive: true }
+            updated: { x-sefra-sensitive: true }
+            versions: { x-sefra-sensitive: true }
+            votes: { x-sefra-sensitive: true }
+            watches: { x-sefra-sensitive: true }
+            worklog: { x-sefra-sensitive: true }
+            workratio: { x-sefra-sensitive: true }
+execute:
+  connector: jira
+  method: PUT
+  path: "/issue/${input.issue_key}"
+  body: { update: { labels: [{ add: "${input.label}" }] } }
+  # Adding a label twice leaves one label, so repeating an unclear attempt is safe.
+  idempotency: { mode: natural }
+  success: [204]
+# The policy refuses a label already on the issue, so this removes only what this
+# step added. Removing an absent label also answers 204, so a repeat is safe. No
+# already_undone: a 404 can also mean the credential lost access, with the label
+# still there, so it goes to an operator.
+compensate:
+  connector: jira
+  method: PUT
+  path: "/issue/${input.issue_key}"
+  body: { update: { labels: [{ remove: "${input.label}" }] } }
+  idempotency: { mode: natural }
+  success: [204]
+summary_template: "Add label ${input.label} to Jira issue ${input.issue_key}"

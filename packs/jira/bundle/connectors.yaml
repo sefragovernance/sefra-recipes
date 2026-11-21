@@ -1,0 +1,19 @@
+# One Jira Cloud site. Replace EDIT_ME_SITE with your site. A Jira URL cannot pin
+# one project, and an API token acts with all the rights of its account across
+# the site, so use a dedicated account that can reach only your project. The
+# project itself is enforced by the input patterns and policies/jira.rego.
+#
+# The secret holds "account-email:api-token", as Basic authentication needs.
+# Replace EDIT_ME_ACCOUNT_EMAIL with that account: a secret for any other account
+# is never sent. The placeholders are not meant to name a real site or account.
+# Do not apply the pack before replacing them.
+connectors:
+  jira:
+    type: http
+    base_url: https://EDIT_ME_SITE.atlassian.net/rest/api/3
+    auth:
+      type: basic
+      secret: jira_basic_auth
+      secret_prefixes: ["EDIT_ME_ACCOUNT_EMAIL:"]
+    timeout_ms: 10000
+    max_concurrency: 4
