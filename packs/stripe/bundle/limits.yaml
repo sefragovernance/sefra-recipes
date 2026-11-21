@@ -1,0 +1,2 @@
+limits:
+  default: { per_minute: 30, burst: 10 }

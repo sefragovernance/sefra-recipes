@@ -1,0 +1,3 @@
+grants:
+  - role: payments_agent
+    intents: [payments.charge_card, payments.refund_payment]

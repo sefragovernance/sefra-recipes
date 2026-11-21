@@ -1,0 +1,16 @@
+# Stripe's API, test mode only. The connector sends nothing with a key that is
+# not a test key (secret_prefixes) and does not trust an answer that says it is
+# live (fail_closed_on): such a charge goes to needs_intervention, where an
+# operator sees it. Going live is a deliberate edit of these two settings.
+connectors:
+  stripe:
+    type: http
+    base_url: https://api.stripe.com
+    auth:
+      type: bearer
+      secret: stripe_secret_key
+      secret_prefixes: [sk_test_, rk_test_]
+    body_encoding: form
+    fail_closed_on: { "/livemode": true }
+    timeout_ms: 30000
+    max_concurrency: 4

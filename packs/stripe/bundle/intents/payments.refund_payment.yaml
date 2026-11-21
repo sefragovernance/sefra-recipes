@@ -1,0 +1,37 @@
+intent: payments.refund_payment
+version: 1
+description: Refund a Stripe payment, in full or in part (test mode only). A refund cannot be undone, so a person approves every one.
+effect: write
+irreversible: true
+tags: [payments, stripe, refunds]
+input_schema:
+  type: object
+  additionalProperties: false
+  required: [payment_intent, amount_minor, reason]
+  properties:
+    payment_intent: { type: string, pattern: "^pi_[A-Za-z0-9_]{1,64}$" }
+    amount_minor:   { type: integer, minimum: 1, maximum: 99999999, x-sefra-money: true }
+    reason:         { type: string, enum: [duplicate, fraudulent, requested_by_customer] }
+# A refund Stripe answers as failed or canceled does not match, which makes the
+# attempt ambiguous and brings it to an operator instead of reporting it done.
+output_schema:
+  type: object
+  required: [refund_id, status, amount]
+  properties:
+    refund_id: { type: string }
+    status:    { type: string, enum: [succeeded, pending] }
+    amount:    { type: integer, minimum: 1 }
+execute:
+  connector: stripe
+  method: POST
+  path: /v1/refunds
+  body:
+    payment_intent: "${input.payment_intent}"
+    amount: "${input.amount_minor}"
+    reason: "${input.reason}"
+  # Stripe replays the saved answer of a key, so repeating an ambiguous attempt
+  # cannot refund twice.
+  idempotency: { mode: header, header: Idempotency-Key }
+  success: [200]
+  output: { refund_id: "${response.body.id}", status: "${response.body.status}", amount: "${response.body.amount}" }
+summary_template: "Refund ${input.amount_minor} (minor units) of payment ${input.payment_intent}, reason ${input.reason}"

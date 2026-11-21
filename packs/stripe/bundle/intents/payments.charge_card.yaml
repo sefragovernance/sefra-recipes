@@ -1,0 +1,59 @@
+intent: payments.charge_card
+version: 1
+description: Charge a card in Stripe (test mode only). Refunded in full when a later step of the plan fails.
+effect: write
+tags: [payments, stripe]
+input_schema:
+  type: object
+  additionalProperties: false
+  required: [amount_minor, currency, payment_method, description]
+  properties:
+    # Stripe's minimum charge in EUR and USD is 50 minor units.
+    amount_minor:   { type: integer, minimum: 50, maximum: 99999999, x-sefra-money: true }
+    currency:       { type: string, enum: [eur, usd] }
+    # A PaymentMethod id; in the sandbox one of Stripe's test methods, such as pm_card_visa.
+    payment_method: { type: string, pattern: "^pm_[A-Za-z0-9_]{1,64}$" }
+    description:    { type: string, minLength: 1, maxLength: 200 }
+# Only a charged intent is a success: an answer of 200 for an intent that
+# still needs the customer (3-D Secure: requires_action) or is processing
+# does not match, which makes the attempt ambiguous (9.5) and, repeated,
+# brings it to an operator instead of passing an unpaid charge on.
+output_schema:
+  type: object
+  required: [payment_intent_id, status, amount_received]
+  properties:
+    payment_intent_id: { type: string }
+    status:            { type: string, const: succeeded }
+    amount_received:   { type: integer, minimum: 1 }
+execute:
+  connector: stripe
+  method: POST
+  path: /v1/payment_intents
+  # Created and confirmed in one call. The account's payment methods apply
+  # (Stripe no longer takes payment_method_types), without any that
+  # redirects the customer.
+  body:
+    amount: "${input.amount_minor}"
+    currency: "${input.currency}"
+    payment_method: "${input.payment_method}"
+    confirm: true
+    automatic_payment_methods: { enabled: true, allow_redirects: never }
+    description: "${input.description}"
+  # Stripe replays the saved answer of a key and refuses it with other
+  # parameters [STD-2]: repeating an ambiguous attempt is safe. There is no
+  # probe: Stripe's search is eventually consistent, so it could call a
+  # committed charge absent (ADR 0030).
+  idempotency: { mode: header, header: Idempotency-Key }
+  success: [200]
+  output: { payment_intent_id: "${response.body.id}", status: "${response.body.status}", amount_received: "${response.body.amount_received}" }
+compensate:
+  connector: stripe
+  method: POST
+  path: /v1/refunds
+  # The whole amount. A repeat with the same key returns the first refund;
+  # Stripe's "already refunded" is a 400 that other refusals share, so it is
+  # not listed under already_undone.
+  body: { payment_intent: "${output.payment_intent_id}" }
+  idempotency: { mode: header, header: Idempotency-Key }
+  success: [200]
+summary_template: "Charge card: ${input.amount_minor} ${input.currency} (minor units) with ${input.payment_method}, ${input.description}"
