@@ -1,0 +1,3 @@
+grants:
+  - role: github_agent
+    intents: [github.get_issue, github.add_label, github.close_issue]

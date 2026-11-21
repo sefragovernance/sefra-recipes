@@ -1,0 +1,19 @@
+# One GitHub repository. Replace EDIT_ME_OWNER/EDIT_ME_REPOSITORY with yours: this
+# line is the only thing that selects the repository, and no agent input can
+# change it, because the connector refuses a path that leaves its base URL. The
+# placeholder is not meant to name a real repository. Do not apply the pack
+# before replacing it.
+#
+# Use a fine-grained token limited to this one repository, with Issues read and
+# write. The connector sends no other kind: a classic token (ghp_) reaches every
+# repository of its owner, and an installation token (ghs_) can span several.
+connectors:
+  github:
+    type: http
+    base_url: https://api.github.com/repos/EDIT_ME_OWNER/EDIT_ME_REPOSITORY
+    auth:
+      type: bearer
+      secret: github_token
+      secret_prefixes: [github_pat_]
+    timeout_ms: 10000
+    max_concurrency: 4
