@@ -1,7 +1,8 @@
-# Stripe's API, test mode only. The connector sends nothing with a key that is
-# not a test key (secret_prefixes) and does not trust an answer that says it is
-# live (fail_closed_on): such a charge goes to needs_intervention, where an
-# operator sees it. Going live is a deliberate edit of these two settings.
+# The Stripe API, test mode only. The connector sends nothing with a key that
+# is not a test key (secret_prefixes). That is the guard for refunds, whose
+# answers carry no livemode field. An answer that says it is live, or a refund
+# answered as failed, is not trusted (fail_closed_on) and reaches an operator.
+# Going live is a deliberate edit of these settings.
 connectors:
   stripe:
     type: http
@@ -11,6 +12,6 @@ connectors:
       secret: stripe_secret_key
       secret_prefixes: [sk_test_, rk_test_]
     body_encoding: form
-    fail_closed_on: { "/livemode": true }
+    fail_closed_on: { "/livemode": true, "/status": failed }
     timeout_ms: 30000
     max_concurrency: 4

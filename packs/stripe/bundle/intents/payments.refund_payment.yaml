@@ -12,14 +12,15 @@ input_schema:
     payment_intent: { type: string, pattern: "^pi_[A-Za-z0-9_]{1,64}$" }
     amount_minor:   { type: integer, minimum: 1, maximum: 99999999, x-sefra-money: true }
     reason:         { type: string, enum: [duplicate, fraudulent, requested_by_customer] }
-# A refund Stripe answers as failed or canceled does not match, which makes the
-# attempt ambiguous and brings it to an operator instead of reporting it done.
+# Only a refund Stripe reports as succeeded is a success. Any other status,
+# pending included, makes the attempt ambiguous and brings it to an operator.
+# Stripe can still fail a refund later; this pack does not track that.
 output_schema:
   type: object
   required: [refund_id, status, amount]
   properties:
     refund_id: { type: string }
-    status:    { type: string, enum: [succeeded, pending] }
+    status:    { type: string, const: succeeded }
     amount:    { type: integer, minimum: 1 }
 execute:
   connector: stripe

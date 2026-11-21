@@ -8,7 +8,7 @@ Running a recipe needs Sefra, which is available through a [pilot request](https
 
 | Pack | Governs | Live check |
 |---|---|---|
-| [Stripe](packs/stripe/) | Card charges and refunds, test mode only | Not passed yet |
+| [For Stripe](packs/stripe/) | Card charges and refunds, test mode only | Passes; not published, see its known limits |
 
 A pack counts as published only when its live check has passed against the vendor's sandbox.
 

@@ -71,6 +71,17 @@ test_large_charge_not_below if not "payments.large_charge" in approvals(amount(c
 
 test_large_charge_not_refund if not "payments.large_charge" in approvals(amount(refund, 50000))
 
+two_charges := json.patch(charge, [{"op": "replace", "path": "/plan/intents", "value": ["payments.charge_card", "payments.charge_card"]}])
+
+test_multiple_charges_ if "payments.multiple_charges" in approvals(two_charges)
+
+test_multiple_charges_not_one if not "payments.multiple_charges" in approvals(charge)
+
+test_multiple_charges_not_refund if {
+	x := json.patch(refund, [{"op": "replace", "path": "/plan/intents", "value": ["payments.charge_card", "payments.charge_card", "payments.refund_payment"]}])
+	not "payments.multiple_charges" in approvals(x)
+}
+
 test_refund_approval_ if "payments.refund_approval" in approvals(refund)
 
 test_refund_approval_small if "payments.refund_approval" in approvals(amount(refund, 1))

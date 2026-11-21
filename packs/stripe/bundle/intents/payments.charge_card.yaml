@@ -8,10 +8,10 @@ input_schema:
   additionalProperties: false
   required: [amount_minor, currency, payment_method, description]
   properties:
-    # Stripe's minimum charge in EUR and USD is 50 minor units.
+    # The minimum Stripe charge in EUR and USD is 50 minor units.
     amount_minor:   { type: integer, minimum: 50, maximum: 99999999, x-sefra-money: true }
     currency:       { type: string, enum: [eur, usd] }
-    # A PaymentMethod id; in the sandbox one of Stripe's test methods, such as pm_card_visa.
+    # A PaymentMethod id; in the sandbox one of the Stripe test methods, such as pm_card_visa.
     payment_method: { type: string, pattern: "^pm_[A-Za-z0-9_]{1,64}$" }
     description:    { type: string, minLength: 1, maxLength: 200 }
 # Only a charged intent is a success: an answer of 200 for an intent that
@@ -41,7 +41,7 @@ execute:
     description: "${input.description}"
   # Stripe replays the saved answer of a key and refuses it with other
   # parameters [STD-2]: repeating an ambiguous attempt is safe. There is no
-  # probe: Stripe's search is eventually consistent, so it could call a
+  # probe: search at Stripe is eventually consistent, so it could call a
   # committed charge absent (ADR 0030).
   idempotency: { mode: header, header: Idempotency-Key }
   success: [200]
@@ -51,7 +51,7 @@ compensate:
   method: POST
   path: /v1/refunds
   # The whole amount. A repeat with the same key returns the first refund;
-  # Stripe's "already refunded" is a 400 that other refusals share, so it is
+  # The "already refunded" answer is a 400 that other refusals share, so it is
   # not listed under already_undone.
   body: { payment_intent: "${output.payment_intent_id}" }
   idempotency: { mode: header, header: Idempotency-Key }

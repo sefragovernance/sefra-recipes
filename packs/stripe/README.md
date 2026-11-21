@@ -1,6 +1,6 @@
-# Stripe pack
+# Sefra pack for Stripe
 
-Governs an AI agent's card charges and refunds in Stripe. **Test mode only**, and its live check has not passed yet.
+Governs the card charges and refunds an AI agent makes through Stripe. **Test mode only.** Not published yet: see "Known limits".
 
 ## What it does
 
@@ -15,6 +15,7 @@ Governs an AI agent's card charges and refunds in Stripe. **Test mode only**, an
 |---|---|
 | `payments.charge_limit` | No charge above 1,000.00 |
 | `payments.large_charge` | A finance approver from 500.00 |
+| `payments.multiple_charges` | A finance approver for any plan with more than one charge |
 | `payments.refund_limit` | No refund above 1,000.00 |
 | `payments.refund_approval` | A person approves every refund |
 | `payments.duplicate` | The same action is refused for 24 hours |
@@ -27,14 +28,24 @@ The amounts are constants at the top of `bundle/policies/payments.rego`. They st
 2. Give your agent the role `payments_agent`, and your approvers the role `finance_approver`.
 3. Run `sefra bundle test packs/stripe/bundle`, then `sefra bundle apply packs/stripe/bundle`.
 
-The connector refuses any key that is not a test key and does not trust an answer marked live. Going live is a deliberate edit of `secret_prefixes` and `fail_closed_on` in `bundle/connectors.yaml`.
+The connector refuses any key that is not a test key. That is the guard for refunds, because Stripe refund answers carry no live-mode field. It also does not trust a charge answered as live, or a refund answered as failed. Going live is a deliberate edit of `secret_prefixes` and `fail_closed_on` in `bundle/connectors.yaml`.
 
 ## What the live API taught us
 
-From Sefra's earlier run of the charge against Stripe's sandbox:
+From running this pack against the Stripe sandbox:
 
 - Stripe refused `payment_method_types` and `error_on_requires_action` with a 400, so the charge uses `automatic_payment_methods` without redirects.
 - A `200` can mean a payment that still needs the customer. The output schema requires `status: succeeded`, so such an answer goes to an operator instead of passing as paid.
-- There is no probe for an unclear charge, because Stripe's search is eventually consistent and could call a real charge absent.
+- There is no probe for an unclear charge, because search at Stripe is eventually consistent and could call a real charge absent.
+- A refund can answer `200` and still be `pending`, and can fail later. This pack treats only `succeeded` as done.
+- Refund answers have no `livemode` field, so a live-mode check on the answer cannot protect a refund.
 
-The refund intent has not been run against the live API yet.
+## Known limits
+
+- **A rollback can report success for a refund that has not completed.** When a later step fails, Sefra counts the automatic refund as done on its HTTP status. A refund answered `failed` reaches an operator, but one answered `pending` or `requires_action` does not. Do not rely on rollback for real money until this is fixed in Sefra.
+- **Refund limits apply per call.** Several approved partial refunds can exceed the limit in total. A person approves each one.
+- **Limits compare minor units, not currencies,** and the approval summary does not show the refund's currency.
+- **Charges split across separate executions** are not added up.
+- A refund that Stripe fails after reporting success is not tracked.
+
+Stripe is a trademark of Stripe, Inc. This pack is not affiliated with or endorsed by Stripe.

@@ -1,4 +1,4 @@
-# Rules of the Stripe pack. Edit the four constants to fit your business; they
+# Rules of this pack for Stripe. Edit the four constants to fit your business; they
 # start strict on purpose.
 #
 # Allow on what is known at submission (principal, intent type). Data-dependent
@@ -69,6 +69,17 @@ require_approval contains {
 } if {
 	input.intent.type == "payments.charge_card"
 	input.input.amount_minor >= approval_charge_minor
+}
+
+# payments.multiple_charges
+require_approval contains {
+	"rule": "payments.multiple_charges",
+	"message": "A plan with more than one charge could split a large one.",
+	"approver": {"role": approver_role},
+	"distinct_from_requester": true,
+} if {
+	input.intent.type == "payments.charge_card"
+	count([i | some i in input.plan.intents; i == "payments.charge_card"]) > 1
 }
 
 # payments.refund_approval
