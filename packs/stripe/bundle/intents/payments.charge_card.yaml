@@ -40,9 +40,9 @@ execute:
     automatic_payment_methods: { enabled: true, allow_redirects: never }
     description: "${input.description}"
   # Stripe replays the saved answer of a key and refuses it with other
-  # parameters [STD-2]: repeating an ambiguous attempt is safe. There is no
+  # parameters: repeating an ambiguous attempt is safe. There is no
   # probe: search at Stripe is eventually consistent, so it could call a
-  # committed charge absent (ADR 0030).
+  # committed charge absent.
   idempotency: { mode: header, header: Idempotency-Key }
   success: [200]
   output: { payment_intent_id: "${response.body.id}", status: "${response.body.status}", amount_received: "${response.body.amount_received}" }

@@ -52,12 +52,12 @@ From running this pack against a test project:
 - **A request without valid credentials can answer `404`** instead of `401`. So a `404` while undoing a step goes to an operator and never counts as undone.
 - **An issue answer carries about 50 fields**, including people, summary, description and comments. A Sefra manifest cannot send the `fields=` parameter, so the pack declares them all, keeps the key, project key, status name and labels readable, and stores the rest only as keyed hashes.
 
-## Known limits
+## Scope and limits
 
 - **A rollback can write to an issue that has left the project, unless the account is project-only.** A compensation runs no policy and reuses the stored key for up to 24 hours, and a moved issue still answers to its old key. The project-only account in step 1 is what turns that call into a `404` for an operator. **The account used for this pack's live check is not project-only**, so this protection was not exercised live.
-- **A moved issue was not tested live.** The check may not touch a second project. The refusal of forward calls is covered by policy tests on the documented answer, which carries the new key and project.
+- **Moved issues are outside the scope of the live check,** which stays within one project. The refusal of forward calls is covered by policy tests on the documented answer, which carries the new key and project.
 - **A label change can have side effects in Jira that an undo does not reverse.** Automation rules, webhooks, board filters and integrations can react to a label being added, and again to its removal. Check what your site runs on label changes before you enable this pack.
-- **The live rollback was caused by a policy refusal at step time,** after a person changed the second issue while the plan waited. A refusal by Jira itself at that point was not produced.
+- **Rollback was validated live through a policy refusal at step time,** after a person changed the second issue while the plan waited, rather than through a refusal from Jira itself.
 - **A custom field added to the site stops the intent** until it is declared in the manifests. That is deliberate, so that no unreviewed data reaches a stored decision. An issue whose answer is larger than 1 MiB stops it too.
 - **An undo is not an erasure.** The issue history keeps the changes, and notifications already sent are not recalled. A Sefra manifest cannot send `notifyUsers=false`, so watchers are notified of each change.
 - **A person or another agent can change an issue between the check and the call.** The check runs just before each step, and a small window remains. If a person adds the same label after the step ran, a rollback removes it. The duplicate rule covers the same agent repeating an action while the earlier one stands. It does not cover two different agents acting on one issue at once, and their rollbacks could undo each other.
