@@ -31,4 +31,4 @@ sefra bundle apply packs/stripe/bundle
 
 ## Licence
 
-Apache-2.0. See [LICENSE](LICENSE). Vendor names identify the systems a recipe works with and imply no partnership or endorsement.
+Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). To report a security problem, see [SECURITY.md](SECURITY.md); to contribute, [CONTRIBUTING.md](CONTRIBUTING.md). Vendor names identify the systems a recipe works with and imply no partnership or endorsement.
