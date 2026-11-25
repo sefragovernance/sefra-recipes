@@ -44,7 +44,7 @@ From running this pack against the Stripe sandbox:
 
 ## Known limits
 
-- **A rollback refund that is still `pending` goes to an operator,** even if it finishes later. Sefra counts it as undone only when Stripe answers `succeeded`. This relies on `success_when` on compensation, in Sefra 0.1.0-rc.2 and later.
+- **A rollback refund that is still `pending` goes to an operator,** even if it finishes later. Sefra counts it as undone only when Stripe answers `succeeded`. This needs `success_when` on compensation, which Sefra 0.1.0-rc.2 and later releases support.
 - **Refund limits apply per call.** Several approved partial refunds can exceed the limit in total. A person approves each one.
 - **Limits compare minor units, not currencies,** and the approval summary does not show the refund's currency.
 - **Charges split across separate executions** are not added up.

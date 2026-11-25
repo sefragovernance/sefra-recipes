@@ -2,7 +2,7 @@
 
 Ready-made bundles for [Sefra](https://sefra.io), a governance gateway between AI agents and the systems they change. Each recipe is a starting point: copy it, edit the rules and thresholds, and apply it. After you copy it, it is yours.
 
-Running a recipe needs Sefra 0.1.0-rc.2 or later, which is available through a [pilot request](https://sefra.io/contact). Every pack passes `sefra bundle test` on that release.
+Running a recipe needs Sefra 0.1.0-rc.2 or later. Sefra is available through a [pilot request](https://sefra.io/contact). Every pack passes `sefra bundle test` on that release.
 
 ## Catalogue
 
