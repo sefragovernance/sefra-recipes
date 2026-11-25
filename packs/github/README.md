@@ -32,6 +32,8 @@ The allowed labels, plan size and approver role are constants at the top of `bun
 
 ## Set up
 
+The pack needs Sefra 0.1.0-rc.2 or later.
+
 1. In `bundle/connectors.yaml`, replace `EDIT_ME_OWNER/EDIT_ME_REPOSITORY` with your repository. This line alone selects the repository. The placeholder is not meant to name a real one, so do not apply the pack before replacing it.
 2. Create a fine-grained personal access token limited to that repository, with **Issues: read and write**. Store it in your secret manager and map it to the name `github_token` in your Sefra configuration. The connector sends no other kind of token: a classic token (`ghp_`) reaches every repository of its owner, and an installation token (`ghs_`) can span several.
 3. Give your agent the role `github_agent`, and your approvers the role `maintainer`.
