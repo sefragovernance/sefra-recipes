@@ -33,6 +33,8 @@ The project, labels, labels needing approval, plan size and approver role are co
 
 ## Set up
 
+The pack needs Sefra 0.1.0-rc.2 or later.
+
 1. **Create a dedicated Jira account that can reach this project and no other.** This is a requirement, not a recommendation. An API token acts with all the rights of its account across the site, and a Jira URL cannot limit it to one project. With a project-only account, an issue moved to another project answers `404`, and a rollback then stops and reaches an operator.
 2. In `bundle/connectors.yaml`, replace `EDIT_ME_SITE` with your site and `EDIT_ME_ACCOUNT_EMAIL` with that account's email. A secret for any other account is never sent.
 3. Replace **every** occurrence of `EDIT_ME_PROJECT` with your project key: in `bundle/policies/jira.rego`, in the `issue_key` pattern of both manifests, and in the output `key` pattern of `bundle/intents/jira.get_issue.yaml`. Then `grep -r EDIT_ME packs/jira/bundle` must find nothing. Do not apply the pack before that.
