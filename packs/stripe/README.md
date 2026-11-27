@@ -1,5 +1,7 @@
 # Sefra pack for Stripe
 
+[Overview on sefra.io](https://sefra.io/solutions/integrations/stripe) · [Set-up guide in the docs](https://docs.sefra.io/recipes/stripe/) · [All recipes](../../README.md)
+
 Governs the card charges and refunds an AI agent makes through Stripe. **Test mode only.**
 
 ## What it does

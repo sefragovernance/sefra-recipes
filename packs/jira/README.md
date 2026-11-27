@@ -1,5 +1,7 @@
 # Sefra pack for Jira
 
+[Overview on sefra.io](https://sefra.io/solutions/integrations/jira) · [Set-up guide in the docs](https://docs.sefra.io/recipes/jira/) · [All recipes](../../README.md)
+
 Governs how an AI agent reads and labels issues in **one** project on a Jira Cloud site. An agent cannot choose the site or the project.
 
 **This pack requires a Jira account that can reach this project and no other.** See [Set up](#set-up) and [Scope and limits](#scope-and-limits).

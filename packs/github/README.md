@@ -1,5 +1,7 @@
 # Sefra pack for GitHub
 
+[Overview on sefra.io](https://sefra.io/solutions/integrations/github) · [Set-up guide in the docs](https://docs.sefra.io/recipes/github/) · [All recipes](../../README.md)
+
 Governs how an AI agent reads, labels and closes issues in **one** repository on GitHub. An agent cannot choose the repository.
 
 ## What it does
